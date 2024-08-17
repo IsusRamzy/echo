@@ -61,6 +61,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+	"html/template"
 )
 
 // Echo is the top-level framework instance.
@@ -391,7 +392,19 @@ func New() (e *Echo) {
 	e.routers = map[string]*Router{}
 	return
 }
+type TemplateRenderer struct {
+	templates *template.Template
+	renderer := &TemplateRenderer{templates: templates}
+}
 
+func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func BeginTemplates(e *Echo) {
+	templates := template.Must(template.ParseGlob("templates/*.html"))
+	e.Renderer = renderer
+}
 // NewContext returns a Context instance.
 func (e *Echo) NewContext(r *http.Request, w http.ResponseWriter) Context {
 	return &context{
